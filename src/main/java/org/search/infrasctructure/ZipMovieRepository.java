@@ -1,8 +1,9 @@
 package org.search.infrasctructure;
 
-import org.search.domain.SearchResult;
-import org.search.domain.MovieRepository;
+import org.search.domain.*;
+
 import java.io.*;
+import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.*;
@@ -15,11 +16,15 @@ public class ZipMovieRepository implements MovieRepository {
     }
 
     @Override
-    public SearchResult searchInMovies(String query) {
+    public SearchResult searchInMovies(Query query) {
+        if (query == null) {
+            throw new InvalidQueryException("Query cannot be null or empty");
+        }
+
         List<String> filesWithMatches = new ArrayList<>();
         int totalOccurrences = 0;
 
-        String[] queryWords = query.toLowerCase().split("\\s+");
+        String[] queryWords = query.getValue().toLowerCase().split("\\s+");
 
         // Measure start time
         long startTime = System.nanoTime();
@@ -35,10 +40,17 @@ public class ZipMovieRepository implements MovieRepository {
                 // Ensure we are only working with files inside the "data" folder and with a ".txt" extension
                 if (entry.getName().startsWith("data/") && entry.getName().endsWith(".txt")) {
                     StringBuilder fileContent = new StringBuilder();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        fileContent.append(line).append(" ");
+
+                    try {
+                        // Instead of using BufferedReader, read directly from the ZipInputStream
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+
+                        while ((bytesRead = zipInputStream.read(buffer)) != -1) {
+                            fileContent.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8));
+                        }
+                    } catch (IOException e) {
+                        throw new ZipProcessingException("Error reading file: " + entry.getName(), e);
                     }
 
                     // Check if all query words are present in the file content
@@ -52,8 +64,10 @@ public class ZipMovieRepository implements MovieRepository {
 
                 zipInputStream.closeEntry();  // Close the current entry
             }
+        } catch (FileNotFoundException e) {
+            throw new org.search.domain.FileNotFoundException("Zip file not found: " + zipFilePath, e);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ZipProcessingException("Error processing zip file: " + zipFilePath, e);
         }
 
         // Measure end time
@@ -73,5 +87,70 @@ public class ZipMovieRepository implements MovieRepository {
         return new SearchResult(totalOccurrences, filesWithMatches);
     }
 
-
 }
+
+// Ensure we are only working with files inside the "data" folder and with a ".txt" extension
+//                if (entry.getName().startsWith("data/") && entry.getName().endsWith(".txt")) {
+//                    StringBuilder fileContent = new StringBuilder();
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream));
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        fileContent.append(line).append(" ");
+//                    }
+//
+//                    // Check if all query words are present in the file content
+//                    String content = fileContent.toString().toLowerCase();
+//                    boolean allWordsPresent = Arrays.stream(queryWords).allMatch(content::contains);
+//                    if (allWordsPresent) {
+//                        filesWithMatches.add(entry.getName());
+//                        totalOccurrences++;
+//                    }
+//                }
+
+//                error
+//                if (entry.getName().startsWith("data/") && entry.getName().endsWith(".txt")) {
+//                    StringBuilder fileContent = new StringBuilder();
+//                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream, StandardCharsets.UTF_8))) {
+//                        String line;
+//                        while ((line = reader.readLine()) != null) {
+//                            fileContent.append(line).append(" ");
+//                        }
+//                    } catch (IOException e) {
+//                        throw new ZipProcessingException("Error reading file: " + entry.getName(), e);
+//                    }
+//
+//                    // Check if all query words are present in the file content
+//                    String content = fileContent.toString().toLowerCase();
+//                    boolean allWordsPresent = Arrays.stream(queryWords).allMatch(content::contains);
+//                    if (allWordsPresent) {
+//                        filesWithMatches.add(entry.getName());
+//                        totalOccurrences++;
+//                    }
+//                }
+
+//                error
+//                if (entry.getName().startsWith("data/") && entry.getName().endsWith(".txt")) {
+//                    StringBuilder fileContent = new StringBuilder();
+//
+//                    // Instead of using try-with-resources here, we manually close BufferedReader later
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream, StandardCharsets.UTF_8));
+//                    String line;
+//                    try {
+//                        while ((line = reader.readLine()) != null) {
+//                            fileContent.append(line).append(" ");
+//                        }
+//                    } catch (IOException e) {
+//                        throw new ZipProcessingException("Error reading file: " + entry.getName(), e);
+//                    } finally {
+//                        // We need to ensure BufferedReader does not close ZipInputStream
+//                        reader.close();
+//                    }
+//
+//                    // Check if all query words are present in the file content
+//                    String content = fileContent.toString().toLowerCase();
+//                    boolean allWordsPresent = Arrays.stream(queryWords).allMatch(content::contains);
+//                    if (allWordsPresent) {
+//                        filesWithMatches.add(entry.getName());
+//                        totalOccurrences++;
+//                    }
+//                }
