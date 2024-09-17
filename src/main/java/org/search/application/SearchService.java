@@ -1,28 +1,54 @@
 package org.search.application;
 
-import org.search.domain.InvalidQueryException;
-import org.search.domain.MovieRepository;
-import org.search.domain.Query;
-import org.search.domain.SearchResult;
+import org.search.domain.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchService {
     private final MovieRepository movieRepository;
+    private final List<SearchEventListener> listeners = new ArrayList<>();
 
     public SearchService(MovieRepository movieRepository) {
         this.movieRepository = movieRepository;
     }
 
-//    public SearchResult search(String query) {
-//        if (query == null || query.trim().isEmpty()) {
-//            throw new InvalidQueryException("Search query cannot be null or empty.");
-//        }
-//        return movieRepository.searchInMovies(query);  // Custom exceptions will be handled here
-//    }
+    public void addSearchEventListener(SearchEventListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeSearchEventListener(SearchEventListener listener) {
+        listeners.remove(listener);
+    }
 
     public SearchResult search(Query query) {
         if (query == null) {
             throw new InvalidQueryException("Search query cannot be null.");
         }
-        return movieRepository.searchInMovies(query);
+
+        // Perform the search
+        long startTime = System.nanoTime();
+        SearchResult result = movieRepository.searchInMovies(query);
+        long endTime = System.nanoTime();
+
+        // Calculate elapsed time in microseconds
+        long elapsedTimeMicros = (endTime - startTime) / 1000;
+
+        // Create and fire the search event
+        SearchEvent event = new SearchEvent(query, result.getOccurrenceCount(), elapsedTimeMicros);
+        fireSearchCompletedEvent(event);
+
+        return result;
+    }
+
+    private void fireSearchCompletedEvent(SearchEvent event) {
+        if (listeners.isEmpty()) {
+            System.out.println("No listeners are registered.");
+        } else {
+            System.out.println("Notifying " + listeners.size() + " listeners.");
+            for (SearchEventListener listener : listeners) {
+                listener.onSearchCompleted(event);
+            }
+        }
     }
 }
