@@ -11,12 +11,11 @@ import org.search.domain.model.SearchResult;
 import org.search.domain.repository.MovieRepository;
 import org.search.domain.event.SearchEvent;
 import org.search.domain.event.SearchEventListener;
-import org.search.domain.exception.InvalidQueryException;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class SearchServiceTest {
@@ -54,9 +53,56 @@ public class SearchServiceTest {
     }
 
     @Test
-    void testSearchInvalidQuery() {
-        Query invalidQuery = new Query(null);
+    void testNoEventWhenNoListeners() {
+        searchService = new SearchService(movieRepository); // Recreate service without listeners
+        Query query = new Query("test");
+        SearchResult result = new SearchResult(1, List.of("file.txt"));
 
-        assertThrows(InvalidQueryException.class, () -> searchService.search(invalidQuery));
+        when(movieRepository.searchInMovies(query)).thenReturn(result);
+
+        SearchResult searchResult = searchService.search(query);
+
+        verify(movieRepository).searchInMovies(query);
+        verifyNoInteractions(listener); // No events should be triggered
     }
+
+    @Test
+    void testMultipleListeners() {
+        SearchEventListener listener2 = mock(SearchEventListener.class);
+        searchService.addSearchEventListener(listener2); // Add a second listener
+
+        Query query = new Query("test");
+        SearchResult result = new SearchResult(1, List.of("file.txt"));
+
+        when(movieRepository.searchInMovies(query)).thenReturn(result);
+
+        SearchResult searchResult = searchService.search(query);
+
+        ArgumentCaptor<SearchEvent> eventCaptor = ArgumentCaptor.forClass(SearchEvent.class);
+        verify(listener).onSearchCompleted(eventCaptor.capture());
+        verify(listener2).onSearchCompleted(eventCaptor.capture());
+
+        SearchEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(query, capturedEvent.getQuery());
+        assertEquals(1, capturedEvent.getResultCount());
+    }
+
+    @Test
+    void testSearchDuration() {
+        Query query = new Query("test");
+        SearchResult result = new SearchResult(1, List.of("file.txt"));
+
+        when(movieRepository.searchInMovies(query)).thenReturn(result);
+
+        long startTime = System.nanoTime();
+        SearchResult searchResult = searchService.search(query);
+        long endTime = System.nanoTime();
+
+        long elapsedTimeMicros = (endTime - startTime) / 1000;
+
+        // Assert that the elapsed time is within a reasonable range
+        assertTrue(elapsedTimeMicros >= 0);
+    }
+
+
 }

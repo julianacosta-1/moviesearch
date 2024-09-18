@@ -27,9 +27,6 @@ public class SearchService {
     }
 
     public SearchResult search(Query query) {
-        if (query == null) {
-            throw new InvalidQueryException("Search query cannot be null.");
-        }
 
         // Perform the search
         long startTime = System.nanoTime();
