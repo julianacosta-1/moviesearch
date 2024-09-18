@@ -1,4 +1,4 @@
-package org.search.domain;
+package org.search.domain.exception;
 
 public class MovieSearchException extends RuntimeException {
     public MovieSearchException(String message) {

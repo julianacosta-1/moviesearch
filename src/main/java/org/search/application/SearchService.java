@@ -1,6 +1,11 @@
 package org.search.application;
 
-import org.search.domain.*;
+import org.search.domain.event.SearchEvent;
+import org.search.domain.event.SearchEventListener;
+import org.search.domain.exception.InvalidQueryException;
+import org.search.domain.model.Query;
+import org.search.domain.model.SearchResult;
+import org.search.domain.repository.MovieRepository;
 
 import java.util.ArrayList;
 import java.util.List;

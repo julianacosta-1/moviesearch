@@ -1,9 +1,15 @@
-package org.search.domain;
+package org.search.domain.event;
+
+import org.search.domain.model.Query;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SearchEvent {
-    private final Query query;       // The search query
-    private final int resultCount;   // Number of occurrences found
-    private final long elapsedTime;  // Time taken to complete the search
+    private final Query query;
+    private final int resultCount;
+    private final long elapsedTime;
+    private static final Logger logger = Logger.getLogger(SearchEvent.class.getName());
 
     public SearchEvent(Query query, int resultCount, long elapsedTime) {
         this.query = query;
@@ -21,6 +27,11 @@ public class SearchEvent {
 
     public long getElapsedTime() {
         return elapsedTime;
+    }
+
+    public void logEvent() {
+        logger.log(Level.INFO, String.format("SearchEvent[query=%s, resultCount=%d, elapsedTime=%d microseconds]",
+                query.getValue(), resultCount, elapsedTime));
     }
 
     @Override

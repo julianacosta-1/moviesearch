@@ -1,4 +1,6 @@
-package org.search.domain;
+package org.search.domain.model;
+
+import org.search.domain.exception.InvalidQueryException;
 
 public class Query {
     private final String value;

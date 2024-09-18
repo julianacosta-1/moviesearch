@@ -1,4 +1,4 @@
-package org.search.domain;
+package org.search.domain.model;
 
 import java.util.List;
 

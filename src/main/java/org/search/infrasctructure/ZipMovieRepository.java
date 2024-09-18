@@ -1,6 +1,10 @@
 package org.search.infrasctructure;
 
-import org.search.domain.*;
+import org.search.domain.exception.InvalidQueryException;
+import org.search.domain.exception.ZipProcessingException;
+import org.search.domain.model.Query;
+import org.search.domain.model.SearchResult;
+import org.search.domain.repository.MovieRepository;
 
 import java.io.*;
 import java.io.FileNotFoundException;
@@ -65,7 +69,7 @@ public class ZipMovieRepository implements MovieRepository {
                 zipInputStream.closeEntry();  // Close the current entry
             }
         } catch (FileNotFoundException e) {
-            throw new org.search.domain.FileNotFoundException("Zip file not found: " + zipFilePath, e);
+            throw new org.search.domain.exception.FileNotFoundException("Zip file not found: " + zipFilePath, e);
         } catch (IOException e) {
             throw new ZipProcessingException("Error processing zip file: " + zipFilePath, e);
         }

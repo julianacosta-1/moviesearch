@@ -1,4 +1,4 @@
-package org.search.domain;
+package org.search.domain.exception;
 
 public class ZipProcessingException extends MovieSearchException {
     public ZipProcessingException(String message) {
