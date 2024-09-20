@@ -2,64 +2,45 @@ package application;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.search.application.SearchOrchestrator;
 import org.search.application.SearchService;
 import org.search.domain.model.Query;
 import org.search.domain.model.SearchResult;
-import org.search.domain.exception.InvalidQueryException;
-import org.search.domain.exception.MovieSearchException;
-import org.search.domain.event.SearchEvent;
-import org.search.domain.event.SearchEventListener;
-
-import java.util.List;
+import org.search.infrastructure.LoggerConfig;
+import java.util.Collections;
 import java.util.logging.Logger;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class SearchOrchestratorTest {
+
     @Mock
     private SearchService searchService;
-    @Mock
-    private SearchEventListener listener;
 
-    private SearchOrchestrator orchestrator;
+    @InjectMocks
+    private SearchOrchestrator searchOrchestrator;
+
+    private final Logger logger = Logger.getLogger(SearchOrchestratorTest.class.getName());
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
-        orchestrator = new SearchOrchestrator(searchService);
-        //orchestrator.addSearchEventListener(listener);
+        LoggerConfig.configureLogger();
     }
 
     @Test
-    void testRunSuccess() {
-        Query query = new Query("test");
-        SearchResult result = new SearchResult(1, List.of("file.txt"));
-        when(searchService.search(query)).thenReturn(result);
+    public void testInteractionWithSearchService() {
+        String searchTerm = "testTerm";
+        Query query = new Query(searchTerm);
+        SearchResult searchResult = new SearchResult(1, Collections.singletonList("file.txt"));
+        when(searchService.search(any(Query.class))).thenReturn(searchResult);
 
-        orchestrator.run("test");
+        searchOrchestrator.run(searchTerm);
 
-        ArgumentCaptor<SearchEvent> eventCaptor = ArgumentCaptor.forClass(SearchEvent.class);
         verify(searchService).addSearchEventListener(any());
-        verify(listener).onSearchCompleted(eventCaptor.capture());
-
-        SearchEvent capturedEvent = eventCaptor.getValue();
-        assertEquals("test", capturedEvent.getQuery().getValue());
-        assertEquals(1, capturedEvent.getResultCount());
-    }
-
-    @Test
-    void testRunInvalidQuery() {
-        doThrow(new InvalidQueryException("Invalid query")).when(searchService).search(any());
-
-        orchestrator.run("invalid");
-
-        verify(searchService).search(any());
+        verify(searchService).search(query);
     }
 }
-

@@ -1,4 +1,4 @@
-package org.search.infrasctructure;
+package org.search.infrastructure;
 
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -19,7 +19,7 @@ public class LoggerConfig {
                 @Override
                 public String format(LogRecord record) {
                     // Remove timestamp, class name, and customize format
-                    return String.format("%s: %s%n", record.getLevel(), record.getMessage());
+                    return String.format("%s%n",record.getMessage());
                 }
             });
         }

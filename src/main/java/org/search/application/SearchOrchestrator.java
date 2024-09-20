@@ -16,8 +16,8 @@ public class SearchOrchestrator {
     public void run(String searchTerm) {
         try {
             searchService.addSearchEventListener(event -> {
-                logger.info(String.format("Search completed for query '%s': %d occurrences found in %d microseconds.",
-                        event.getQuery().getValue(), event.getResultCount(), event.getElapsedTime()));
+                logger.info(String.format("Foram encontradas %d ocorrências pelo termo \"%s\".",
+                        event.getResultCount(), event.getQuery().getValue()));
             });
 
             Query query = new Query(searchTerm);
@@ -32,13 +32,11 @@ public class SearchOrchestrator {
     }
 
     private void printResults(SearchResult result, String searchTerm) {
-        logger.info(String.format("%d occurrences were found for the term \"%s\".", result.getOccurrenceCount(), searchTerm));
         if (result.getOccurrenceCount() > 0) {
-            logger.info("The files that have \"" + searchTerm + "\" are:");
-            result.getFilesWithMatches().forEach(file -> logger.info(file));
+            logger.info("Os arquivos que possuem \"" + searchTerm + "\" são:");
+            result.getFilesWithMatches().forEach(logger::info);
         } else {
             logger.info("No occurrences found.");
         }
     }
 }
-

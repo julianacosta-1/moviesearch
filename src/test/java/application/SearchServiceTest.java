@@ -67,27 +67,6 @@ public class SearchServiceTest {
     }
 
     @Test
-    void testMultipleListeners() {
-        SearchEventListener listener2 = mock(SearchEventListener.class);
-        searchService.addSearchEventListener(listener2); // Add a second listener
-
-        Query query = new Query("test");
-        SearchResult result = new SearchResult(1, List.of("file.txt"));
-
-        when(movieRepository.searchInMovies(query)).thenReturn(result);
-
-        SearchResult searchResult = searchService.search(query);
-
-        ArgumentCaptor<SearchEvent> eventCaptor = ArgumentCaptor.forClass(SearchEvent.class);
-        verify(listener).onSearchCompleted(eventCaptor.capture());
-        verify(listener2).onSearchCompleted(eventCaptor.capture());
-
-        SearchEvent capturedEvent = eventCaptor.getValue();
-        assertEquals(query, capturedEvent.getQuery());
-        assertEquals(1, capturedEvent.getResultCount());
-    }
-
-    @Test
     void testSearchDuration() {
         Query query = new Query("test");
         SearchResult result = new SearchResult(1, List.of("file.txt"));

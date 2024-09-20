@@ -2,7 +2,6 @@ package org.search.application;
 
 import org.search.domain.event.SearchEvent;
 import org.search.domain.event.SearchEventListener;
-import org.search.domain.exception.InvalidQueryException;
 import org.search.domain.model.Query;
 import org.search.domain.model.SearchResult;
 import org.search.domain.repository.MovieRepository;
@@ -27,30 +26,18 @@ public class SearchService {
     }
 
     public SearchResult search(Query query) {
-
-        // Perform the search
-        long startTime = System.nanoTime();
         SearchResult result = movieRepository.searchInMovies(query);
-        long endTime = System.nanoTime();
-
-        // Calculate elapsed time in microseconds
-        long elapsedTimeMicros = (endTime - startTime) / 1000;
 
         // Create and fire the search event
-        SearchEvent event = new SearchEvent(query, result.getOccurrenceCount(), elapsedTimeMicros);
+        SearchEvent event = new SearchEvent(query, result.getOccurrenceCount());
         fireSearchCompletedEvent(event);
 
         return result;
     }
 
     private void fireSearchCompletedEvent(SearchEvent event) {
-        if (listeners.isEmpty()) {
-            System.out.println("No listeners are registered.");
-        } else {
-            System.out.println("Notifying " + listeners.size() + " listeners.");
-            for (SearchEventListener listener : listeners) {
-                listener.onSearchCompleted(event);
-            }
+        for (SearchEventListener listener : listeners) {
+            listener.onSearchCompleted(event);
         }
     }
 }
