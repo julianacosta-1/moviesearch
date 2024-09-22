@@ -1,28 +1,29 @@
 package org.search.infrastructure;
 
-import org.search.domain.exception.IndexFormatException;
-import org.search.domain.exception.IndexLoadException;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class IndexLoader {
-    @SuppressWarnings("unchecked")
-    public static Map<String, Set<String>> loadIndex(String indexFilePath) throws IndexLoadException {
+    public static Map<String, Set<String>> loadIndex(String indexFilePath) throws IOException, ClassNotFoundException {
+        List<IndexEntry> indexEntries;
+
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFilePath))) {
-            Object obj = ois.readObject();
-            if (obj instanceof Map) {
-                return (Map<String, Set<String>>) obj;
-            } else {
-                throw new IndexFormatException("Loaded object is not a Map.");
-            }
+            indexEntries = (List<IndexEntry>) ois.readObject();
+        } catch (FileNotFoundException e) {
+            throw new IOException("Index file not found: " + indexFilePath, e);
         } catch (IOException e) {
-            throw new IndexLoadException("Failed to load index from file: " + indexFilePath, e);
-        } catch (ClassNotFoundException e) {
-            throw new IndexLoadException("Class not found while loading index.", e);
+            throw new IOException("Failed to read index file: " + indexFilePath, e);
         }
+
+        // Convert List<IndexEntry> to Map<String, Set<String>>
+        Map<String, Set<String>> invertedIndex = new HashMap<>();
+        for (IndexEntry entry : indexEntries) {
+            invertedIndex.put(entry.getWord(), entry.getFileNames());
+        }
+
+        return invertedIndex;
     }
 }

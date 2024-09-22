@@ -33,7 +33,6 @@ public class SearchOrchestrator {
 
     private void printResults(SearchResult result, String searchTerm) {
         if (result.getOccurrenceCount() > 0) {
-            logger.info("Os arquivos que possuem \"" + searchTerm + "\" são:");
             result.getFilesWithMatches().forEach(logger::info);
         } else {
             logger.info("No occurrences found.");

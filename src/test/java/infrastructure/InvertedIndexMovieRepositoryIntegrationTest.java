@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.search.domain.exception.ZipProcessingException;
 import org.search.domain.model.Query;
 import org.search.domain.model.SearchResult;
-import org.search.infrastructure.InvertedIndexMovieRepositoryOlder;
+import org.search.domain.repository.InvertedIndexMovieRepository;
 
 import java.io.IOException;
 import java.util.zip.ZipEntry;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import java.io.*;
 
 public class InvertedIndexMovieRepositoryIntegrationTest {
-    private InvertedIndexMovieRepositoryOlder repository;
+    private InvertedIndexMovieRepository repository;
     private File tempZipFile;
 
     @BeforeEach
@@ -30,7 +30,7 @@ public class InvertedIndexMovieRepositoryIntegrationTest {
             createZipFile(zipContent, tempZipFile);
 
             // Initialize repository with the path to the temporary zip file
-            repository = new InvertedIndexMovieRepositoryOlder(tempZipFile.getAbsolutePath());
+            repository = new InvertedIndexMovieRepository(tempZipFile.getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException("Setup failed: " + e.getMessage(), e);
         } catch (ZipProcessingException e) {
@@ -61,7 +61,7 @@ public class InvertedIndexMovieRepositoryIntegrationTest {
         // Test with an invalid file path, should throw ZipProcessingException
         assertThrows(ZipProcessingException.class, () -> {
             // Create a repository with an invalid path to trigger the exception
-            InvertedIndexMovieRepositoryOlder invalidRepository = new InvertedIndexMovieRepositoryOlder("invalid/path/to/zipfile.zip");
+            InvertedIndexMovieRepository invalidRepository = new InvertedIndexMovieRepository("invalid/path/to/zipfile.zip");
             // Attempt to build the index, which should throw ZipProcessingException
             invalidRepository.buildInvertedIndex("invalid/path/to/zipfile.zip");
         });

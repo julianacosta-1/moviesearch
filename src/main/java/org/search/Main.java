@@ -10,92 +10,16 @@ import org.search.infrastructure.LoggerConfig;
 import org.search.utils.ParseArgument;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Logger;
-
-//public class Main{
-//    public static void main(String[] args) {
-//        String zipFilePath = "src/main/resources/movies.zip"; //args[0];
-//        String indexFilePath = "src/main/resources/index"; //args[1];
-//
-//        try {
-//            // Carregar o índice invertido do arquivo
-//            Map<String, Set<String>> invertedIndex = loadIndex(indexFilePath);
-//
-//            // Termos de busca
-//            String searchTerm = "walt"; // Por exemplo, "walt disney"
-//            String[] searchTerms = searchTerm.toLowerCase().split("\\s+"); // Dividir por espaços
-//
-//            float startTime = System.nanoTime(); // Capturar o tempo de início da busca
-//
-//            // Realizar busca pelos termos utilizando o critério "AND"
-//            Set<String> searchResults = searchFilesWithAllTerms(invertedIndex, searchTerms);
-//
-//            float endTime = System.nanoTime(); // Capturar o tempo de término
-//            float duration = (endTime - startTime) / 1000000; // Converter para milissegundos
-//
-//            // Exibir os resultados da busca
-//            if (searchResults != null && !searchResults.isEmpty()) {
-//                System.out.println("Foram encontradas " + searchResults.size() + " ocorrências pelo termo \"" + searchTerm + "\".");
-//                System.out.println("Os arquivos que possuem \"" + searchTerm + "\" são: ");
-//                searchResults.forEach(System.out::println);
-//            } else {
-//                System.out.println("Nenhuma ocorrência foi encontrada pelo termo \"" + searchTerm + "\".");
-//            }
-//
-//            // Exibir o tempo de busca
-//            System.out.println("Tempo de busca: " + duration + " ms");
-//
-//
-//        } catch (IOException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    // Método para carregar o índice invertido do arquivo
-//    @SuppressWarnings("unchecked")
-//    private static Map<String, Set<String>> loadIndex(String indexFilePath) throws IOException, ClassNotFoundException {
-//        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFilePath))) {
-//            return (Map<String, Set<String>>) ois.readObject();
-//        }
-//    }
-//
-//    private static Set<String> searchFilesWithAllTerms(Map<String, Set<String>> invertedIndex, String[] searchTerms) {
-//        Set<String> result = null;
-//
-//        for (String term : searchTerms) {
-//            Set<String> filesContainingTerm = invertedIndex.get(term);
-//
-//            // If any term is not found, return empty set
-//            if (filesContainingTerm == null) {
-//                return Collections.emptySet(); // No matches
-//            }
-//
-//            // Initialize the result with the files of the first term
-//            if (result == null) {
-//                result = new TreeSet<>(filesContainingTerm); // Use TreeSet to maintain sorted order
-//            } else {
-//                // Retain only files that contain all terms (intersection)
-//                result.retainAll(filesContainingTerm);
-//            }
-//        }
-//
-//        // No need to sort again, TreeSet keeps elements sorted
-//        return result != null ? result : Collections.emptySet();
-//    }
-//}
-
+import java.util.HashSet;
+import java.util.Set;
 
 public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Set<String> cachedCompositeWords = new HashSet<>(Set.of("walt disney")); // Add "walt disney" to the cache
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws java.io.FileNotFoundException {
         // Configure logger
         LoggerConfig.configureLogger();
         String searchTerm;
@@ -111,12 +35,22 @@ public class Main {
         String indexFilePath = "src/main/resources/index";
         String zipFilePath = "src/main/resources/movies.zip"; // Path to your zip file
 
-        // Check if the index file exists
+        // Check if the index file exists or if searchTerm is a composite phrase
         File indexFile = new File(indexFilePath);
-        if (!indexFile.exists()) {
-            logger.info("Index file not found. Building index...");
+        boolean isCompositePhrase = searchTerm.contains(" ");
+
+        if (!indexFile.exists() || (isCompositePhrase && !cachedCompositeWords.contains(searchTerm))) {
+            if (isCompositePhrase) {
+                // Remove the existing index file if the search term is a composite phrase
+                if (indexFile.exists()) {
+                    indexFile.delete();
+                }
+                cachedCompositeWords.add(searchTerm); // Cache the composite word
+            }
+
+            logger.info("Index file not found or search term is a new composite phrase. Building index...");
             try {
-                IndexBuilder.buildIndex(zipFilePath, indexFilePath);
+                IndexBuilder.buildIndex(zipFilePath, indexFilePath, searchTerm); // Pass composite phrase
                 logger.info("Index built successfully.");
             } catch (FileNotFoundException e) {
                 logger.severe("ZIP file not found: " + e.getMessage());
@@ -128,6 +62,8 @@ public class Main {
                 logger.severe("Failed to build index: " + e.getMessage());
                 return;
             }
+        } else {
+            logger.info("Using cached index for composite phrase: " + searchTerm);
         }
 
         // Initialize repository and services

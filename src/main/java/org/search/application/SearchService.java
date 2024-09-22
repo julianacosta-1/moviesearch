@@ -21,10 +21,6 @@ public class SearchService {
         listeners.add(listener);
     }
 
-    public void removeSearchEventListener(SearchEventListener listener) {
-        listeners.remove(listener);
-    }
-
     public SearchResult search(Query query) {
         SearchResult result = movieRepository.searchInMovies(query);
 
