@@ -14,6 +14,10 @@ public class SearchOrchestrator {
     }
 
     public void run(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            throw new InvalidQueryException("Query cannot be null or empty");
+        }
+
         try {
             searchService.addSearchEventListener(event -> {
                 logger.info(String.format("Foram encontradas %d ocorrências pelo termo \"%s\".",
@@ -22,7 +26,7 @@ public class SearchOrchestrator {
 
             Query query = new Query(searchTerm);
             SearchResult result = searchService.search(query);
-            printResults(result, searchTerm);
+            printResults(result);
 
         } catch (InvalidQueryException e) {
             logger.severe("Invalid search query: " + e.getMessage());
@@ -31,7 +35,7 @@ public class SearchOrchestrator {
         }
     }
 
-    private void printResults(SearchResult result, String searchTerm) {
+    private void printResults(SearchResult result) {
         if (result.getOccurrenceCount() > 0) {
             result.getFilesWithMatches().forEach(logger::info);
         } else {

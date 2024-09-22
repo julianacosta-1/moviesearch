@@ -1,6 +1,5 @@
 package org.search.domain.repository;
 
-
 import org.search.domain.exception.FileNotFoundException;
 import org.search.domain.exception.IndexFormatException;
 import org.search.domain.exception.MovieSearchException;
@@ -14,16 +13,16 @@ import java.util.*;
 import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
-
-// in %.6f milliseconds
+import java.util.logging.Logger;
 
 public class InvertedIndexMovieRepository implements MovieRepository {
+    private static final Logger logger = Logger.getLogger(InvertedIndexMovieRepository.class.getName());
     private final Map<String, Set<String>> invertedIndex;
 
-    public InvertedIndexMovieRepository(String indexFilePath) {
+    public InvertedIndexMovieRepository(IndexLoader indexLoader, String indexFilePath) {
         // Initialize the index only once and ensure it is cached
         try {
-            this.invertedIndex = IndexLoader.loadIndex(indexFilePath);
+            this.invertedIndex = indexLoader.loadIndex(indexFilePath);
         } catch (FileNotFoundException e) {
             throw new MovieSearchException("Index file not found: " + indexFilePath, e);
         } catch (IndexFormatException | IOException | ClassNotFoundException e) {
@@ -52,9 +51,7 @@ public class InvertedIndexMovieRepository implements MovieRepository {
         double endTime = System.nanoTime();
         double duration = (endTime - startTime) / 1_000_000;
 
-        System.out.println(duration);
-//        Logger.getLogger(InvertedIndexMovieRepository.class.getName())
-//                .info(String.format("Search duration: %.10f milliseconds.\n", duration));
+        logger.info(String.format("Search duration: %.10f milliseconds.\n", duration));
 
         return result;
     }

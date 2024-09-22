@@ -21,6 +21,10 @@ public class SearchService {
         listeners.add(listener);
     }
 
+    public List<SearchEventListener> getListeners() {
+        return listeners;
+    }
+
     public SearchResult search(Query query) {
         SearchResult result = movieRepository.searchInMovies(query);
 

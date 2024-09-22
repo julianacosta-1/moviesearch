@@ -6,16 +6,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("unchecked")
 public class IndexLoader {
-    public static Map<String, Set<String>> loadIndex(String indexFilePath) throws IOException, ClassNotFoundException {
+    public Map<String, Set<String>> loadIndex(String indexFilePath) throws IOException, ClassNotFoundException {
         List<IndexEntry> indexEntries;
-
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFilePath))) {
             indexEntries = (List<IndexEntry>) ois.readObject();
-        } catch (FileNotFoundException e) {
-            throw new IOException("Index file not found: " + indexFilePath, e);
+        }catch (ClassNotFoundException e) {
+            throw new IOException("Class not found while loading index: " + indexFilePath, e);
         } catch (IOException e) {
-            throw new IOException("Failed to read index file: " + indexFilePath, e);
+            throw new IOException("I/O error while loading index: " + indexFilePath, e);
         }
 
         // Convert List<IndexEntry> to Map<String, Set<String>>
