@@ -1,14 +1,13 @@
 package infrastructure;
 
+import org.search.domain.exception.ZipProcessingException;
+import org.search.infrastructure.ZipFileProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.search.infrastructure.ZipFileProcessor;
 
 import java.io.*;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,36 +22,36 @@ class ZipFileProcessorTest {
 
     @Test
     void testProcessZipFileFileNotFound() {
-        String zipFilePath = "nonexistent.zip";
-        Exception exception = assertThrows(FileNotFoundException.class, () -> {
-            zipFileProcessor.processZipFile(zipFilePath, "test");
+        String zipFilePath = "/nonexistent.zip"; // Path to a non-existent ZIP file
+
+        ZipProcessingException exception = assertThrows(ZipProcessingException.class, () -> {
+            zipFileProcessor.processZipFile(zipFilePath, "phrase one");
         });
-        assertTrue(exception.getMessage().contains("ZIP file not found: " + zipFilePath));
+
+        // Check that the cause of the ZipProcessingException is a FileNotFoundException
+        assertTrue(exception.getCause() instanceof FileNotFoundException);
+        assertTrue(exception.getCause().getMessage().contains("ZIP file not found in resources: " + zipFilePath));
     }
+
 
     @Test
     void testProcessZipFileSuccessful() throws IOException {
-        // Create a temporary ZIP file
-        File tempZipFile = File.createTempFile("test", ".zip");
-        tempZipFile.deleteOnExit(); // Ensure it gets deleted after the test
+        String zipFilePath = "/test.zip"; // Adjust based on where the file is located in resources
 
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(tempZipFile))) {
-            ZipEntry entry = new ZipEntry("test.txt");
-            zipOutputStream.putNextEntry(entry);
-            zipOutputStream.write("phrase test test2".getBytes());
-            zipOutputStream.closeEntry();
-        }
-
-        // Call the method under test with the file path
-        Map<String, Set<String>> result = zipFileProcessor.processZipFile(tempZipFile.getAbsolutePath(), "phrase");
+        // Call the method under test with the resource path
+        Map<String, Set<String>> result = zipFileProcessor.processZipFile(zipFilePath, "phrase one");
 
         // Verify the results
-        assertEquals(3, result.size()); // Adjust based on the expected number of unique keys
-        assertTrue(result.containsKey("phrase"));
-        assertTrue(result.get("phrase").contains("test.txt"));
+        assertEquals(5, result.size()); // Updated to match the actual number of unique keys
+        assertTrue(result.containsKey("phrase one")); // Check for composite phrase
+        assertTrue(result.get("phrase one").contains("test/test.txt")); // Adjusted path
         assertTrue(result.containsKey("test"));
-        assertTrue(result.get("test").contains("test.txt"));
+        assertTrue(result.get("test").contains("test/test.txt")); // Adjusted path
         assertTrue(result.containsKey("test2"));
-        assertTrue(result.get("test2").contains("test.txt"));
+        assertTrue(result.get("test2").contains("test/test.txt")); // Adjusted path
+        assertTrue(result.containsKey("phrase")); // Ensure this key is checked
+        assertTrue(result.get("phrase").contains("test/test.txt")); // Adjusted path
+        assertTrue(result.containsKey("one")); // Add assertion for "one"
+        assertTrue(result.get("one").contains("test/test.txt")); // Adjusted path
     }
 }

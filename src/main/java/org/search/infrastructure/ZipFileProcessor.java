@@ -1,5 +1,6 @@
 package org.search.infrastructure;
 
+import org.search.Main;
 import org.search.domain.exception.ZipProcessingException;
 
 import java.io.*;
@@ -12,20 +13,22 @@ public class ZipFileProcessor {
     public Map<String, Set<String>> processZipFile(String zipFilePath, String compositePhrase) throws IOException {
         Map<String, Set<String>> invertedIndex = new HashMap<>();
 
-        File zipFile = new File(zipFilePath);
-        if (!zipFile.exists()) {
-            throw new FileNotFoundException("ZIP file not found: " + zipFilePath);
-        }
+        // Load the ZIP file from resources using getResourceAsStream
+        try (InputStream zipInputStream = Main.class.getResourceAsStream(zipFilePath)) {
+            if (zipInputStream == null) {
+                throw new FileNotFoundException("ZIP file not found in resources: " + zipFilePath);
+            }
 
-        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile))) {
-            ZipEntry entry;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                if (!entry.isDirectory() && entry.getName().endsWith(".txt")) {
-                    processTextFile(zipInputStream, invertedIndex, entry.getName(), compositePhrase);
+            try (ZipInputStream zis = new ZipInputStream(zipInputStream)) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (!entry.isDirectory() && entry.getName().endsWith(".txt")) {
+                        processTextFile(zis, invertedIndex, entry.getName(), compositePhrase);
+                    }
                 }
             }
         } catch (IOException e) {
-            throw new ZipProcessingException("Error reading from ZIP file: " + zipFilePath, e);
+            throw new ZipProcessingException("Error reading from ZIP file in resources: " + zipFilePath, e);
         }
 
         return IndexSorter.sortIndexEntries(invertedIndex);
