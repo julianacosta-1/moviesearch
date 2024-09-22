@@ -52,7 +52,7 @@ O programa exibirá o tempo necessário para realizar a busca, a quantidade de o
 
 ### Classe `IndexEntry`
 
-A classe `IndexEntry` foi criada para facilitar a conversão do índice invertido, incluindo a frequência de cada palavra, que indica em quantos arquivos de texto a palavra aparece. Embora a ideia de ordenar as palavras pela frequência tenha sido considerada, percebi que isso não otimizaria o tempo de busca para palavras compostas.
+A classe `IndexEntry` foi criada para facilitar a conversão do índice invertido, incluindo a frequência de cada palavra, que indica em quantos arquivos de texto a palavra aparece. Embora a ideia de ordenar as palavras pela frequência tenha sido considerada, percebi que isso não otimizaria o tempo de busca.
 
 ### Reaproveitamento de Palavras-Chave Compostas
 
@@ -68,7 +68,7 @@ No entanto, uma possível solução para permitir a reutilização seria impleme
 
 ## Observação
 
-É importante ressaltar que, para palavras-chave que não são compostas, o programa não gera um novo arquivo de índice invertido (`invertedIndex`).
+É importante ressaltar que, para palavras-chave que não são compostas, o programa gera um arquivo de índice invertido apenas na primeira execução(`invertedIndex`).
 
 ## Conclusão
 
