@@ -1,6 +1,7 @@
 package infrastructure;
 
 import org.junit.jupiter.api.Test;
+import org.search.domain.exception.IndexLoadException;
 import org.search.infrastructure.IndexEntry;
 import org.search.infrastructure.IndexLoader;
 
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class IndexLoaderTest {
 
     @Test
-    void testLoadIndexSuccess() throws IOException, ClassNotFoundException {
+    void testLoadIndexSuccess() throws IOException {
         // Given
         List<IndexEntry> indexEntries = List.of(
                 new IndexEntry("disney", 1, Set.of("file1.txt")),
@@ -46,9 +47,6 @@ class IndexLoaderTest {
     @Test
     void testLoadIndexIOException() throws IOException {
         // Given
-        String indexFilePath = "path/to/corrupted-index";
-
-        // Create a corrupted temporary file to simulate an IOException during loading
         File tempFile = File.createTempFile("corrupted-index", ".dat");
         tempFile.deleteOnExit();
 
@@ -60,8 +58,8 @@ class IndexLoaderTest {
         // Create an instance of IndexLoader
         IndexLoader indexLoader = new IndexLoader();
 
-        // Expecting an IOException when trying to read the corrupted file
-        IOException thrown = assertThrows(IOException.class, () -> indexLoader.loadIndex(tempFile.getAbsolutePath()));
+        // Expecting an IndexLoadException when trying to read the corrupted file
+        IndexLoadException thrown = assertThrows(IndexLoadException.class, () -> indexLoader.loadIndex(tempFile.getAbsolutePath()));
 
         // Verify the exception message
         assertTrue(thrown.getMessage().contains("I/O error while loading index"));

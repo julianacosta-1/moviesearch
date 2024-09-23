@@ -1,9 +1,6 @@
 package org.search.domain.repository;
 
-import org.search.domain.exception.FileNotFoundException;
-import org.search.domain.exception.IndexFormatException;
-import org.search.domain.exception.MovieSearchException;
-import org.search.domain.exception.SearchTermNotFoundException;
+import org.search.domain.exception.*;
 import org.search.domain.model.Query;
 import org.search.domain.model.SearchResult;
 import org.search.infrastructure.IndexLoader;
@@ -20,15 +17,15 @@ public class InvertedIndexMovieRepository implements MovieRepository {
     private final Map<String, Set<String>> invertedIndex;
 
     public InvertedIndexMovieRepository(IndexLoader indexLoader, String indexFilePath) {
-        // Initialize the index only once and ensure it is cached
         try {
             this.invertedIndex = indexLoader.loadIndex(indexFilePath);
         } catch (FileNotFoundException e) {
-            throw new MovieSearchException("Index file not found: " + indexFilePath, e);
-        } catch (IndexFormatException | IOException | ClassNotFoundException e) {
-            throw new MovieSearchException("Index file format is invalid: " + indexFilePath, e);
+            throw new FileNotFoundException("Index file not found: " + indexFilePath, e);
+        } catch (IndexFormatException | IOException e) {
+            throw new IndexLoadException("Failed to load index from: " + indexFilePath, e);
         }
     }
+
 
     public SearchResult searchInMovies(Query query) {
         String searchTerm = query.getValue().toLowerCase();

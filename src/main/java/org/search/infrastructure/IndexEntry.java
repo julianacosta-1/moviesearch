@@ -1,5 +1,8 @@
 package org.search.infrastructure;
 
+import org.search.domain.exception.IndexEmptyException;
+import org.search.domain.exception.IndexFormatException;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,13 +59,23 @@ public class IndexEntry implements Serializable{
                 '}';
     }
 
-    // Method to create index entries
     public static List<IndexEntry> createIndexEntries(Map<String, Set<String>> invertedIndex) {
+        if (invertedIndex == null) {
+            throw new IndexFormatException("Inverted index cannot be null.");
+        }
+        if (invertedIndex.isEmpty()) {
+            throw new IndexEmptyException("Inverted index cannot be empty.");
+        }
+
         List<IndexEntry> entries = new ArrayList<>();
         invertedIndex.forEach((word, fileNames) -> {
+            if (word == null || fileNames == null) {
+                throw new IndexFormatException("Index entry cannot have null word or fileNames.");
+            }
             int frequency = fileNames.size();
             entries.add(new IndexEntry(word, frequency, fileNames));
         });
         return entries;
     }
+
 }

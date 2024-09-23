@@ -1,6 +1,7 @@
 package org.search.infrastructure;
 
 import org.search.Main;
+import org.search.domain.exception.ZipFileEmptyException;
 import org.search.domain.exception.ZipProcessingException;
 
 import java.io.*;
@@ -10,10 +11,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ZipFileProcessor {
+
     public Map<String, Set<String>> processZipFile(String zipFilePath, String compositePhrase) throws IOException {
         Map<String, Set<String>> invertedIndex = new HashMap<>();
 
-        // Load the ZIP file from resources using getResourceAsStream
         try (InputStream zipInputStream = Main.class.getResourceAsStream(zipFilePath)) {
             if (zipInputStream == null) {
                 throw new FileNotFoundException("ZIP file not found in resources: " + zipFilePath);
@@ -21,10 +22,15 @@ public class ZipFileProcessor {
 
             try (ZipInputStream zis = new ZipInputStream(zipInputStream)) {
                 ZipEntry entry;
+                boolean foundTextFile = false; // Track if we found any text files
                 while ((entry = zis.getNextEntry()) != null) {
                     if (!entry.isDirectory() && entry.getName().endsWith(".txt")) {
+                        foundTextFile = true;
                         processTextFile(zis, invertedIndex, entry.getName(), compositePhrase);
                     }
+                }
+                if (!foundTextFile) {
+                    throw new ZipFileEmptyException("No text files found in ZIP: " + zipFilePath);
                 }
             }
         } catch (IOException e) {
@@ -33,6 +39,7 @@ public class ZipFileProcessor {
 
         return IndexSorter.sortIndexEntries(invertedIndex);
     }
+
 
     private void processTextFile(InputStream inputStream, Map<String, Set<String>> invertedIndex,
                                  String fileName, String compositePhrase) throws IOException {

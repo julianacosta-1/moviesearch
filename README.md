@@ -43,6 +43,9 @@ Para executar o programa e os testes, siga os passos abaixo:
     - **Mover o JAR para outro local** (opcional) e executá-lo de qualquer diretório:
       ```bash
       mv target/search.jar ./search.jar
+      ```
+
+    - ```bash
       java -jar search.jar "walt disney"
       ```
 

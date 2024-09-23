@@ -1,10 +1,9 @@
 package infrastructure;
 
 import org.junit.jupiter.api.Test;
+import org.search.domain.exception.IndexEmptyException;
 import org.search.infrastructure.IndexSorter;
-
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class IndexSorterTest {
@@ -35,11 +34,8 @@ class IndexSorterTest {
         // Given: an empty map
         Map<String, Set<String>> invertedIndex = new HashMap<>();
 
-        // When: we call sortIndexEntries
-        Map<String, Set<String>> sortedIndex = IndexSorter.sortIndexEntries(invertedIndex);
-
-        // Then: the result should be an empty map
-        assertTrue(sortedIndex.isEmpty());
+        // Then: expect IndexEmptyException when we call sortIndexEntries
+        assertThrows(IndexEmptyException.class, () -> IndexSorter.sortIndexEntries(invertedIndex));
     }
 
     @Test

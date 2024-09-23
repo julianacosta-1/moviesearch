@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.search.domain.exception.ZipProcessingException;
 import org.search.infrastructure.IndexBuilder;
 import org.search.infrastructure.IndexEntry;
 import org.search.infrastructure.IndexSaver;
@@ -64,7 +65,7 @@ class IndexBuilderTest {
 
 
     @Test
-    void testBuildIndexThrowsIOException() throws IOException {
+    void testBuildIndexThrowsZipProcessingException() throws ZipProcessingException, IOException {
         // Given
         String zipFilePath = "path/to/zip";
         String indexFilePath = "path/to/index";
@@ -74,11 +75,16 @@ class IndexBuilderTest {
         when(zipFileProcessor.processZipFile(zipFilePath, compositePhrase)).thenThrow(new IOException("ZIP processing error"));
 
         // When/Then
-        assertThrows(IOException.class, () -> {
+        ZipProcessingException thrown = assertThrows(ZipProcessingException.class, () -> {
             indexBuilder.buildIndex(zipFilePath, indexFilePath, compositePhrase);
         });
 
         // Ensure indexSaver.saveIndex is never called
         verify(indexSaver, never()).saveIndex(anyList(), eq(indexFilePath));
+
+        // Assert that the cause of the ZipProcessingException is the original IOException
+        assertEquals(IOException.class, thrown.getCause().getClass());
+        assertEquals("ZIP processing error", thrown.getCause().getMessage());
     }
+
 }

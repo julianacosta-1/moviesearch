@@ -12,10 +12,8 @@ import java.util.logging.Logger;
 
 public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
-//    private static final String INDEX_FILE_PATH = "src/main/resources/index";
-//    private static final String ZIP_FILE_PATH = "src/main/resources/movies.zip";
-     private static final String INDEX_FILE_PATH = "index";
-     private static final String ZIP_FILE_PATH = "/movies.zip";
+    private static final String INDEX_FILE_PATH = "index";
+    private static final String ZIP_FILE_PATH = "/movies.zip";
 
     public static void main(String[] args) {
         LoggerConfig.configureLogger();

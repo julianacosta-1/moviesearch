@@ -3,6 +3,7 @@ package infrastructure;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.search.domain.exception.IndexSaveException;
 import org.search.infrastructure.IndexEntry;
 import org.search.infrastructure.IndexSaver;
 
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.ByteArrayOutputStream;
+
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 class IndexSaverTest {
@@ -36,7 +39,7 @@ class IndexSaverTest {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
 
         // Use a spy on the ObjectOutputStream to verify interaction
-        ObjectOutputStream objectOutputStreamSpy = Mockito.spy(objectOutputStream);
+        ObjectOutputStream objectOutputStreamSpy = spy(objectOutputStream);
 
         // Write to the spy stream
         objectOutputStreamSpy.writeObject(indexEntries);
@@ -57,8 +60,8 @@ class IndexSaverTest {
                 new IndexEntry("pixar", 1, Set.of("file2.txt"))
         );
 
-        // Expect an IOException due to invalid file path
-        assertThrows(IOException.class, () -> indexSaver.saveIndex(indexEntries, indexFilePath));
+        // Expect an IndexSaveException due to invalid file path
+        assertThrows(IndexSaveException.class, () -> indexSaver.saveIndex(indexEntries, indexFilePath));
     }
 }
 
